@@ -5,10 +5,10 @@
 --
 
 -- initialization
-local X = {}
+local _UTILS = {}
 
 -- returns the first bot player in a team
-function X.GetFirstBot()
+function _UTILS.GetFirstBot()
     local bot = nil;
 	local players = GetTeamPlayers(GetTeam());
 
@@ -22,7 +22,7 @@ function X.GetFirstBot()
 end
 
 -- returns true if a team  has a human player
-function X.HasHumanPlayer()
+function _UTILS.HasHumanPlayer()
 	local players = GetTeamPlayers(GetTeam())
 
 	for k,v in pairs(players) do
@@ -34,7 +34,7 @@ function X.HasHumanPlayer()
 end
 
 -- returns false if each human player has selected a hero
-function X.IsHumanPlayerSelecting()
+function _UTILS.IsHumanPlayerSelecting()
 	local allies = GetTeamPlayers(GetTeam());
 	local enemies = GetTeamPlayers(GetOpposingTeam());
 
@@ -56,4 +56,4 @@ function X.IsHumanPlayerSelecting()
 end
 --
 --
-return X
+return _UTILS

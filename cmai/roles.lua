@@ -4,12 +4,10 @@
 --
 
 -- initialization
-local X = {}
---
---
+local _ROLES = {}
 
 -- all heroes 
-X["heroes"] =	
+_ROLES["hero"] =	-- DO NOT TOUCH!
 {
     "npc_dota_hero_abaddon",
 	"npc_dota_hero_abyssal_underlord",
@@ -138,7 +136,7 @@ X["heroes"] =
 }
 
 -- safe lane
-X["safe"] =	
+_ROLES["safe"] =	
 {
     "npc_dota_hero_alchemist",
     "npc_dota_hero_antimage",
@@ -169,7 +167,7 @@ X["safe"] =
 }
 
 -- mid lane
-X["mid"] = 	
+_ROLES["mid"] = 	
 {
     "npc_dota_hero_arc_warden",
     "npc_dota_hero_bloodseeker",
@@ -199,7 +197,7 @@ X["mid"] =
 }
 
 -- off lane
-X["off"] = 	
+_ROLES["off"] = 	
 {
     "npc_dota_hero_abyssal_underlord",
     "npc_dota_hero_axe",
@@ -230,7 +228,7 @@ X["off"] =
 
 
 -- soft support
-X["soft"] = 	
+_ROLES["soft"] = 	
 {
     "npc_dota_hero_ancient_apparition",
     "npc_dota_hero_bounty_hunter",
@@ -261,7 +259,7 @@ X["soft"] =
 }
 
 -- hard support
-X["hard"] = 	
+_ROLES["hard"] = 	
 {
     "npc_dota_hero_abaddon",
     "npc_dota_hero_bane",
@@ -288,4 +286,4 @@ X["hard"] =
 }
 --
 --
-return X
+return _ROLES
