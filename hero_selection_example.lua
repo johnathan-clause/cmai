@@ -30,7 +30,7 @@ function Think()
     -- origThink:       The original think function to be run when not captains mode.
     -- draftTable:      (Optional) If provided, the picks and roles will be in the given order. Use 
     --                  the strings 'safe','mid','off','soft', and 'hard' to denote roles. You can 
-    --                  customize picks by altering the lists for each role in 'CMRepo.lua' Bots
+    --                  customize picks by altering the lists for each role in 'roles.lua' Bots
     --                  will pick/ban heroes randomly from the aforementioned lists. (1)(2)
     -- (1) { firstpick, secondpick, thirdpick, fourthpick, fifthpick }
     -- (2) { 'hard', 'off', 'soft', 'mid', 'safe' }
