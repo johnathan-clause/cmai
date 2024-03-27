@@ -1,13 +1,18 @@
 --
---      CAPTAIN'S MODE REPOSITORY (CMR)
+--      CAPTAIN'S MODE A.I. (CMAI)
 --
---          hero_selection.lua
+--          hero_selection_example.lua
 --
 
-local CMR = require(GetScriptDirectory() .. "\\cmr\\cmrepo");
+--
+-- TO USE CMAI, REQUIRE THE CMAI SCRIPT AS SHOWN HERE!
+--
+
+-- assign the cmai script to a variable so we can use it
+local CMAI = require(GetScriptDirectory() .. "\\cmai\\cmai");
 
 --
--- TO USE CMR, CALL 'CMThink' AS SHOWN HERE!
+-- TO USE CMAI, CALL 'CMThink' AS SHOWN HERE!
 --
 
 -- preserve the original 'Think' function by renaming it
@@ -17,7 +22,7 @@ function _Think()
     -- we want to preserve
 end
 
--- the function we will be calling 'CMR.CMThink' from
+-- the function we will be calling 'CMAI.CMThink' from
 function Think()
     -- CMThink ( minThinkTime, maxThinkTime, origThink, draftTable )
     -- minThinkTime:    Minimum seconds bot can take to think. Set below zero to access reserve time.
@@ -29,11 +34,11 @@ function Think()
     --                  will pick/ban heroes randomly from the aforementioned lists. (1)(2)
     -- (1) { firstpick, secondpick, thirdpick, fourthpick, fifthpick }
     -- (2) { 'hard', 'off', 'soft', 'mid', 'safe' }
-    CMR.CMThink(-16, 28, _Think, {'safe','soft','hard','mid','off'});
+    CMAI.CMThink(-16, 28, _Think, {'safe','soft','hard','mid','off'});
 end
 
 --
--- TO USE CMR, CALL 'GetLaneAssignments' AS SHOWN HERE!
+-- TO USE CMAI, CALL 'GetLaneAssignments' AS SHOWN HERE!
 --
 
 -- preserve the original 'UpdateLaneAssignments' function by renaming it
@@ -43,11 +48,11 @@ function _UpdateLaneAssignments()
     -- function we want to preserve
 end
 
--- the function we will be calling 'CMR.GetLaneAssignments' from
+-- the function we will be calling 'CMAI.GetLaneAssignments' from
 function UpdateLaneAssignments()
     -- GetLanesAssignments ( origLanes )
     -- origLanes:       The original lane assignment function to be run when not captains mode.
-    return CMR.GetLaneAssignments(_UpdateLaneAssignments)
+    return CMAI.GetLaneAssignments(_UpdateLaneAssignments)
 end
 
 --
