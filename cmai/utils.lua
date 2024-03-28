@@ -54,6 +54,18 @@ function _UTILS.IsHumanPlayerSelecting()
 	end
 	return false
 end
+
+-- returns a table with shuffled rows of given table
+function _UTILS.GetShuffledTable(original)
+	local shuffled = {}
+
+	math.randomseed(math.random());
+	for k,v in pairs(original) do
+		local pos = math.random(1, #shuffled+1)
+		table.insert(shuffled, pos, v)
+	end
+	return shuffled
+end
 --
 --
 return _UTILS
