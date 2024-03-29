@@ -216,7 +216,7 @@ function _CMAI.ValidateDrafts(radiantDraft, direDraft, logRadiant, logDire)
 	if GetTeam() == TEAM_DIRE then draft = direDraft end
 	draft = draft or _UTILS.GetShuffledTable(_defaultDraft);
 	for k,v in pairs(draft) do
-		if v ~= 'safe' and v ~= 'mid' and v ~= 'off' and v ~= 'soft' and v ~= 'hard' and #draft ~= 5 then goto a end
+		if (v ~= 'safe' and v ~= 'mid' and v ~= 'off' and v ~= 'soft' and v ~= 'hard') or #draft ~= 5 then goto a end
 		_pickOrder[k] = v;
 		if log then print("\n>>" .. team .. " DRAFT[" .. k .. "] = " .. v) end
 	end
