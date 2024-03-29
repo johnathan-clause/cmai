@@ -24,17 +24,21 @@ end
 
 -- the function we will be calling 'CMAI.CMThink' from
 function Think()
-    -- CMThink ( minThinkTime, maxThinkTime, origThink, draftTable )
+    -- CMThink ( minThinkTime, maxThinkTime, origThink, radiantDraft, direDraft )
     -- minThinkTime:    Minimum seconds bot can take to think. Set below zero to access reserve time.
     -- maxThinkTime:    Maximum seconds bot can take to think. Values above 30 are redundant.
     -- origThink:       The original think function to be run when not captains mode.
-    -- draftTable:      (Optional) If provided, the picks and roles will be in the given order. Use 
+    -- logRadiant:      (Optional) Should the console log the radiant draft.
+    -- logDire:         (Optional) Should the console log th dire draft.
+    -- radiantDraft:    (Optional) If provided, the picks and roles will be in the given order. Use 
     --                  the strings 'safe','mid','off','soft', and 'hard' to denote roles. You can 
     --                  customize picks by altering the lists for each role in 'roles.lua' Bots
-    --                  will pick/ban heroes randomly from the aforementioned lists. (1)(2)
+    --                  will pick/ban heroes randomly from the aforementioned lists. If no draft is 
+    --                  provided, the draft will be randomized. (1)(2)
+    -- direDraft:       (Optional) Same as radiatDraft, but for the dire.
     -- (1) { firstpick, secondpick, thirdpick, fourthpick, fifthpick }
     -- (2) { 'hard', 'off', 'soft', 'mid', 'safe' }
-    CMAI.CMThink(-16, 28, _Think, {'safe','soft','hard','mid','off'});
+    CMAI.CMThink(-16, 28, _Think, true, true, {'safe','soft','hard','mid','off'}, {'mid', 'off', 'hard', 'soft', 'safe'});
 end
 
 --
