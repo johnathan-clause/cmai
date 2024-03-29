@@ -316,8 +316,8 @@ function _CMAI.CMLaneAssignment()
 		if member ~= nil and member:IsHero() then
 			local unit = member:GetUnitName();
 
-			if _heroRoles[unit] == ("safe" or "hard") then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_BOT or LANE_TOP end
-			if _heroRoles[unit] == ("off" or "soft") then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_TOP or LANE_BOT end
+			if _heroRoles[unit] == "safe" or  _heroRoles[unit] == "hard" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_BOT or LANE_TOP end
+			if _heroRoles[unit] == "off" or _heroRoles[unit] == "soft" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_TOP or LANE_BOT end
 			if _heroRoles[unit] == "mid" then _heroLanes[i] = LANE_MID end
 		end
 	end
