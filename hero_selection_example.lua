@@ -24,7 +24,7 @@ end
 
 -- the function we will be calling 'CMAI.CMThink' from
 function Think()
-    -- CMThink ( minThinkTime, maxThinkTime, origThink, radiantDraft, direDraft )
+    -- CMThink ( minThinkTime, maxThinkTime, origThink, logRadiant, logDire, radiantDraft, direDraft )
     -- minThinkTime:    Minimum seconds bot can take to think. Set below zero to access reserve time.
     -- maxThinkTime:    Maximum seconds bot can take to think. Values above 30 are redundant.
     -- origThink:       The original think function to be run when not captains mode.
