@@ -7,7 +7,7 @@
 local _ROLES = {}
 
 -- all heroes 
-_ROLES["hero"] =	-- DO NOT TOUCH!
+_ROLES["hero"] =	
 {
     "npc_dota_hero_abaddon",
 	"npc_dota_hero_abyssal_underlord",
