@@ -164,7 +164,7 @@ function _CMAI.CMThink(min, max, think, logRadiant, logDire, radiantDraft, direD
 		end
 		if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK then
 			_CMAI.PickCaptain();
-			if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] and DotaTime() > -1 then 
+			if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] or DotaTime() > -1 then 
 					_cmaiState = _cmaiStates[_CMAI_STATE_DRAFT] end
 		elseif GetHeroPickState() == HEROPICK_STATE_CM_PICK then
 			_CMAI.SelectHeroes();
@@ -206,6 +206,7 @@ end
 -- ensures the draft input given, if any, is readable; otherwise, set draft data to default
 function _CMAI.ValidateDrafts(radiantDraft, direDraft, logRadiant, logDire)	
 	local draft
+	local roles = {}
 	local team = GetTeam() == TEAM_RADIANT and "RADIANT" or "DIRE";
 	local log = GetTeam() == TEAM_RADIANT 
 		and (logRadiant and (_UTILS.HasHumanPlayer() and GetOpposingTeam() == TEAM_DIRE) or 
@@ -217,7 +218,9 @@ function _CMAI.ValidateDrafts(radiantDraft, direDraft, logRadiant, logDire)
 	draft = draft or _UTILS.GetShuffledTable(_defaultDraft);
 	for k,v in pairs(draft) do
 		if (v ~= 'safe' and v ~= 'mid' and v ~= 'off' and v ~= 'soft' and v ~= 'hard') or #draft ~= 5 then goto a end
+		for n,x in pairs(roles) do if x == v then goto a end end
 		_pickOrder[k] = v;
+		roles[k] = v;
 		if log then print("\n>>" .. team .. " DRAFT[" .. k .. "] = " .. v) end
 	end
 	goto b
