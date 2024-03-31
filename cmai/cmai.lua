@@ -277,6 +277,7 @@ function _CMAI.SelectHeroes()
 		local players = GetTeamPlayers(GetTeam());
 		local hero = "";
 
+		_CMAI.UpdatePickedHero();
 		for k,v in pairs(players) do
 			hero = GetSelectedHeroName(v);
 			if hero ~= nil and hero ~= "" then
