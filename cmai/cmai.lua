@@ -167,8 +167,9 @@ function _CMAI.CMThink(min, max, think, logRadiant, logDire, radiantDraft, direD
 			if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] or DotaTime() > -1 then 
 					_cmaiState = _cmaiStates[_CMAI_STATE_DRAFT] end
 		elseif GetHeroPickState() == HEROPICK_STATE_CM_PICK then
+			if _cmaiState == _cmaiStates[_CMAI_STATE_PICK] then
+				_CMAI.UpdatePickedHero() _cmaiState = _cmaiStates[_CMAI_STATE_POST] end
 			_CMAI.SelectHeroes();
-			_cmaiState = _cmaiStates[_CMAI_STATE_POST];
 		end
 		if _cmaiState == _cmaiStates[_CMAI_STATE_DRAFT] then
 			_CMAI.ValidateDrafts(radiantDraft, direDraft, logRadiant, logDire);
@@ -276,8 +277,7 @@ function _CMAI.SelectHeroes()
 		local bots = {}
 		local players = GetTeamPlayers(GetTeam());
 		local hero = "";
-
-		_CMAI.UpdatePickedHero();
+		
 		for k,v in pairs(players) do
 			hero = GetSelectedHeroName(v);
 			if hero ~= nil and hero ~= "" then
