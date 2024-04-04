@@ -24,21 +24,19 @@ end
 
 -- the function we will be calling 'CMAI.CMThink' from
 function Think()
-    -- CMThink ( minThinkTime, maxThinkTime, origThink, logRadiant, logDire, radiantDraft, direDraft )
-    -- minThinkTime:    Minimum seconds bot can take to think. Set below zero to access reserve time.
-    -- maxThinkTime:    Maximum seconds bot can take to think. Values above 30 are redundant.
-    -- origThink:       The original think function to be run when not captains mode.
-    -- logRadiant:      (Optional) Should the console log the radiant draft.
-    -- logDire:         (Optional) Should the console log th dire draft.
-    -- radiantDraft:    (Optional) If provided, the picks and roles will be in the given order. Use 
-    --                  the strings 'safe','mid','off','soft', and 'hard' to denote roles. You can 
-    --                  customize picks by altering the lists for each role in 'roles.lua' Bots
-    --                  will pick/ban heroes randomly from the aforementioned lists. If no draft is 
-    --                  provided, the draft will be randomized. (1)(2)
-    -- direDraft:       (Optional) Same as radiatDraft, but for the dire.
+    -- CMThink ( origThink, minThinkTime, maxThinkTime, logOpponent, radiantDraft, direDraft )
+    -- func origThink:      The original think function to be run when not captains mode.
+    -- int minThinkTime:    (optional)(default:0) Minimum seconds bot can take to think. 
+    -- int maxThinkTime:    (optional)(default:0) Maximum seconds bot can take to think.
+    -- bool logOpponent:    (Optional)(default: false) Should client print the opponents draft in the console/chat? 
+    -- table radiantDraft:  (Optional)(default: random) If provided, the pick order for roles will be in the given 
+    --                      order. Use the strings 'safe','mid','off','soft', and 'hard' to denote roles. (1)(2)
+    -- table direDraft:     See radiantDraft.
     -- (1) { firstpick, secondpick, thirdpick, fourthpick, fifthpick }
     -- (2) { 'hard', 'off', 'soft', 'mid', 'safe' }
-    CMAI.CMThink(-16, 28, _Think, true, true, {'safe','soft','hard','mid','off'}, {'mid', 'off', 'hard', 'soft', 'safe'});
+    
+    CMAI.CMThink(_Think);
+    -- CMAI.CMThink(_Think, 4, 48, true, {'safe','soft','hard','mid','off'}, {'mid', 'off', 'hard', 'soft', 'safe'};
 end
 
 --
