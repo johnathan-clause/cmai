@@ -69,9 +69,9 @@ end
 
 -- returns a given number within a declared range
 function _UTILS.Clamp(num, min, max)
-	return (num > min and num < max) and num 
+	return (num >= min and num <= max) and num 
 		or (num < min and min 
-		or (num > max and max))
+		or (num > max and max or nil))
 end
 --
 --
