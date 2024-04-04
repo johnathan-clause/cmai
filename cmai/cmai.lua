@@ -13,8 +13,7 @@ local _UTILS = require(GetScriptDirectory() .. "\\cmai\\utils");
 
 -- init tables
 local _pickedHeroes = {}
-local _firstPickTimer = {}
-local _lastPickTimer = {}
+local _pickTimer = {}
 local _pickOrder = {}
 local _heroRoles = {}
 local _heroLanes = {}
@@ -22,13 +21,6 @@ local _heroLanes = {}
 -- init vars
 local _lastState;
 local _timeRemaining;
-
--- dec const
-local _CMAI_STATE_PRE 		= 1;
-local _CMAI_STATE_CAPTAIN	= 2;
-local _CMAI_STATE_DRAFT 	= 3;
-local _CMAI_STATE_PICK		= 4;
-local _CMAI_STATE_POST	 	= 5;
 
 -- dec tables
 local _firstPickStates = 
@@ -85,6 +77,11 @@ local _lastPickStates =
 	[HEROPICK_STATE_CM_SELECT9] = 0,
 	[HEROPICK_STATE_CM_SELECT10] = 24
 }
+local _CMAI_STATE_PRE 		= 1;
+local _CMAI_STATE_CAPTAIN	= 2;
+local _CMAI_STATE_DRAFT 	= 3;
+local _CMAI_STATE_PICK		= 4;
+local _CMAI_STATE_POST	 	= 5;
 local _cmaiStates = 
 {
 	[_CMAI_STATE_PRE] 		= 1,
@@ -148,15 +145,15 @@ function _CMAI.GetNHeroBan()
 end
 
 -- main function where all logic is executed; CRITICAL FUNCTION! SEE 'hero_selection_example.lua' FOR USAGE!
-function _CMAI.CMThink(min, max, think, logRadiant, logDire, radiantDraft, direDraft)
+function _CMAI.CMThink(origThink, minThink, maxThink, logOpponent, radiantDraft, direDraft)
 	if GetGameMode() == GAMEMODE_CM then
 		if GetGameState() ~= GAME_STATE_HERO_SELECTION then return end
 
 		if _cmaiState == _cmaiStates[_CMAI_STATE_PRE] then
-			_firstPickTimer[1] = RandomInt(min, max);
-			_firstPickTimer[2] = -129;
-			_lastPickTimer[1] = RandomInt(min, max);
-			_lastPickTimer[2] = -129;
+			_pickTimer[1] = minThink and (minThink >= 0 and _UTILS.Clamp(30 - minThink,-129,30) or _UTILS.Clamp(minThink,-129,0)) or 30;
+			_pickTimer[2] = maxThink and (maxThink >= 0 and _UTILS.Clamp(30 - maxThink,-129,_pickTimer[1]) or _UTILS.Clamp(maxThink,-129,_pickTimer[1])) or _UTILS.Clamp(30,-129,_pickTimer[1]);
+			_pickTimer[3] = RandomInt(_pickTimer[2], _pickTimer[1]);
+			_pickTimer[4] = -129;
 			_cmaiState = _cmaiStates[_CMAI_STATE_CAPTAIN];
 		end
 		if GetHeroPickState() ~= _lastState then
@@ -172,35 +169,34 @@ function _CMAI.CMThink(min, max, think, logRadiant, logDire, radiantDraft, direD
 			_CMAI.SelectHeroes();
 		end
 		if _cmaiState == _cmaiStates[_CMAI_STATE_DRAFT] then
-			_CMAI.ValidateDrafts(radiantDraft, direDraft, logRadiant, logDire);
+			_CMAI.ValidateDrafts(radiantDraft, direDraft, false, false);
 			_cmaiState = _cmaiStates[_CMAI_STATE_PICK];
 		end
 		if _lastState ~= HEROPICK_STATE_CM_CAPTAINPICK and _lastState ~= HEROPICK_STATE_CM_PICK then
 			_timeRemaining = GetCMPhaseTimeRemaining();
 			if _cmaiState == _cmaiStates[_CMAI_STATE_PICK] then
 				local pickState = _firstPickStates[_lastState] == 0 and _lastPickStates[_lastState] or _firstPickStates[_lastState];
-				local pickTimer = _firstPickStates[_lastState] == 0 and _lastPickTimer or _firstPickTimer;
 
 				if pickState ~= 0 then
-					if GetHeroPickState() >= HEROPICK_STATE_CM_BAN1 and GetHeroPickState() <= HEROPICK_STATE_CM_BAN14 and _timeRemaining <= pickTimer[1] then
+					if GetHeroPickState() >= HEROPICK_STATE_CM_BAN1 and GetHeroPickState() <= HEROPICK_STATE_CM_BAN14 and _timeRemaining <= _pickTimer[3] then
 						_CMAI.BanHero();
 						if _timeRemaining < 0 then
-							pickTimer[2] = pickTimer[2] - _timeRemaining;
+							_pickTimer[4] = _pickTimer[4] - _timeRemaining;
 						end
-						pickTimer[1] = RandomInt(min, max);
-					elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 and _timeRemaining <= pickTimer[1] then
+						_pickTimer[3] = _UTILS.Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
+					elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 and _timeRemaining <= _pickTimer[3] then
 						_CMAI.PickHero();
 						_CMAI.UpdatePickedHero();
 						if _timeRemaining < 0 then
-							pickTimer[2] = pickTimer[2] - _timeRemaining;
+							_pickTimer[4] = _pickTimer[4] - _timeRemaining;
 						end
-						pickTimer[1] = RandomInt(min, max);
+						_pickTimer[3] = _UTILS.Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
 					end
 				end 
 			end
 		end
 	else
-		think();
+		origThink();
 	end
 end
 
@@ -320,7 +316,7 @@ function _CMAI.CMLaneAssignment()
 		if member ~= nil and member:IsHero() then
 			local unit = member:GetUnitName();
 
-			if _heroRoles[unit] == "safe" or  _heroRoles[unit] == "hard" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_BOT or LANE_TOP end
+			if _heroRoles[unit] == "safe" or _heroRoles[unit] == "hard" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_BOT or LANE_TOP end
 			if _heroRoles[unit] == "off" or _heroRoles[unit] == "soft" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_TOP or LANE_BOT end
 			if _heroRoles[unit] == "mid" then _heroLanes[i] = LANE_MID end
 		end
