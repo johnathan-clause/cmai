@@ -67,6 +67,17 @@ function _UTILS.GetShuffledTable(original)
 	end
 	return shuffled
 end
+
+-- sets a bot as a captain; always picks the first bot as captain if no input given
+function _UTILS.SetCaptain(botId)
+	if GetCMCaptain() == -1 then
+		local bot = botId or _UTILS.GetFirstBot();
+
+		if bot ~= nil then
+			SetCMCaptain(bot);
+		end
+	end
+end
 --
 --
 return _UTILS

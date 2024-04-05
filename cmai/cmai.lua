@@ -164,7 +164,7 @@ function _CMAI.CMThink(origThink, minThink, maxThink, logOpponent, radiantDraft,
 			_lastState = GetHeroPickState();
 		end
 		if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK then
-			_CMAI.PickCaptain();
+			UTILS.SetCaptain();
 			if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] then 
 					_cmaiState = _cmaiStates[_CMAI_STATE_DRAFT] end
 		elseif GetHeroPickState() == HEROPICK_STATE_CM_PICK then
@@ -227,19 +227,6 @@ function _CMAI.ValidateDrafts(radiantDraft, direDraft, logOpponent)
 		((GetTeam() == TEAM_RADIANT and GetOpposingTeam() == TEAM_DIRE) or (GetOpposingTeam() == TEAM_RADIANT and GetTeam() == TEAM_DIRE)) 
 			or (logOpponent and not UTILS.HasHumanPlayer()) then 
 		print('\n>>' .. team .. ' DRAFT:' .. '\n>> 1> ' .. _pickOrder[1] .. '\n>> 2> ' .. _pickOrder[2] .. '\n>> 3> ' .. _pickOrder[3] .. '\n>> 4> ' .. _pickOrder[4] .. '\n>> 5> ' .. _pickOrder[5]) end
-end
-
--- picks a bot as a captain; always picks the first bot as captain
-function _CMAI.PickCaptain()
-	if not UTILS.HasHumanPlayer() or DotaTime() > -1 then
-		if GetCMCaptain() == -1 then
-			local bot = UTILS.GetFirstBot();
-
-			if bot ~= nil then
-				SetCMCaptain(bot);
-			end
-		end
-	end
 end
 
 -- updates the the list of picked heroes when a hero is picked
