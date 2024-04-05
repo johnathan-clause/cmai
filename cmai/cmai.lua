@@ -151,11 +151,11 @@ function _CMAI.CMThink(origThink, minThink, maxThink, logOpponent, radiantDraft,
 
 		if _cmaiState == _cmaiStates[_CMAI_STATE_PRE] then
 			_pickTimer[1] = minThink and 
-				(minThink >= 0 and UTILS.Clamp(30 - minThink,-130,30) or UTILS.Clamp(minThink,-130,0)) 
+				(minThink >= 0 and Clamp(30 - minThink,-130,30) or Clamp(minThink,-130,0)) 
 					or 30;
 			_pickTimer[2] = maxThink and 
-				(maxThink >= 0 and UTILS.Clamp(30 - maxThink,-130,_pickTimer[1]) or UTILS.Clamp(maxThink,-130,_pickTimer[1])) 
-					or UTILS.Clamp(30,-130,_pickTimer[1]);
+				(maxThink >= 0 and Clamp(30 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
+					or Clamp(30,-130,_pickTimer[1]);
 			_pickTimer[3] = RandomInt(_pickTimer[2], _pickTimer[1]);
 			_pickTimer[4] = -130;
 			_cmaiState = _cmaiStates[_CMAI_STATE_CAPTAIN];
@@ -187,14 +187,14 @@ function _CMAI.CMThink(origThink, minThink, maxThink, logOpponent, radiantDraft,
 						if _timeRemaining < 0 then
 							_pickTimer[4] = _pickTimer[4] - _timeRemaining;
 						end
-						_pickTimer[3] = UTILS.Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
+						_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
 					elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 and _timeRemaining <= _pickTimer[3] then
 						_CMAI.PickHero();
 						_CMAI.UpdatePickedHero();
 						if _timeRemaining < 0 then
 							_pickTimer[4] = _pickTimer[4] - _timeRemaining;
 						end
-						_pickTimer[3] = UTILS.Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
+						_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
 					end
 				end 
 			end
