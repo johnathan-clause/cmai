@@ -60,7 +60,7 @@ end
 function _UTILS.GetShuffledTable(original)
 	local shuffled = {}
 
-	math.randomseed(RealTime());
+	math.randomseed(RandomInt(0,999));
 	for k,v in pairs(original) do
 		local pos = math.random(1, #shuffled+1)
 		table.insert(shuffled, pos, v)
