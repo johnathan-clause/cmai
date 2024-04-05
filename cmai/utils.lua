@@ -8,14 +8,15 @@
 local _UTILS = {}
 
 -- returns the first bot player in a team
-function _UTILS.GetFirstBot()
+function _UTILS.GetFirstBot(teamId)
     local bot = nil;
 	local players = GetTeamPlayers(GetTeam());
 
+	teamId = teamId or false;
 	for k,v in pairs(players) do
 		if IsPlayerBot(v) then
 			bot = v;
-			return bot
+			return teamId and k or bot
 		end
 	end
 	return bot
@@ -59,7 +60,7 @@ end
 function _UTILS.GetShuffledTable(original)
 	local shuffled = {}
 
-	math.randomseed(RandomInt(1,1000));
+	math.randomseed(RealTime());
 	for k,v in pairs(original) do
 		local pos = math.random(1, #shuffled+1)
 		table.insert(shuffled, pos, v)
@@ -67,7 +68,8 @@ function _UTILS.GetShuffledTable(original)
 	return shuffled
 end
 
--- returns a given number within a declared range
+-- deprecate
+-- returns a given number within a declared range -- didn't realize already a clamp function defined by valve, oh well ...
 function _UTILS.Clamp(num, min, max)
 	return (num >= min and num <= max) and num 
 		or (num < min and min 
