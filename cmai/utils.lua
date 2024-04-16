@@ -78,6 +78,30 @@ function _UTILS.SetCaptain(botId)
 		end
 	end
 end
+
+-- returns a table of heroes for a given role
+function _UTILS.GetNRoleHeroes(role)
+	local ROLES = require(GetScriptDirectory() .. '\\cmai\\roles');
+	return ROLES[role]
+end
+
+-- returns true if the given hero is found in the given role
+function _UTILS.IsHeroNRole(hero, role)
+	local ROLES = require(GetScriptDirectory() .. '\\cmai\\roles');
+	for k,v in pairs(ROLES[role]) do
+		if hero == v then return true end
+	end
+	return false
+end	
+
+-- returns a table of hero counters and countered for a given hero
+function _UTILS.GetNHeroSynergy(hero)
+	local ROLES = require(GetScriptDirectory() .. '\\cmai\\roles');
+	for k,v in pairs(ROLES['synergy']) do
+		if hero == k then return v end
+	end
+	return nil
+end
 --
 --
 return _UTILS
