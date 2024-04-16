@@ -14,7 +14,7 @@ _CONFIG["MINIMUM_THINK_TIME"] = 0
 
 -- maximum seconds bot can take to think 
 -- default: 0
-_CONFIG["MAXIMUM_THINK_TIME"] = 
+_CONFIG["MAXIMUM_THINK_TIME"] = 0
 
 -- print the opponents draft to the console also
 -- default: false
