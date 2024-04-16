@@ -102,6 +102,15 @@ function _UTILS.GetNHeroSynergy(hero)
 	end
 	return nil
 end
+
+-- returns a value for a given property in the configuration file
+function _UTILS.GetNConfig(config)
+	local CONFIG = require(GetScriptDirectory() .. '\\cmai\\config');
+	for k,v in pairs(CONFIG) do
+		if config == k then return v end
+	end
+	return nil
+end
 --
 --
 return _UTILS
