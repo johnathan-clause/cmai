@@ -8,11 +8,11 @@
 local _CMAI = {}
 
 -- requires
-local ROLES = require(GetScriptDirectory() .. "\\cmai\\roles");
 local UTILS = require(GetScriptDirectory() .. "\\cmai\\utils");
 
 -- init tables
 local _pickedHeroes = {}
+local _heroSynergy = {}
 local _pickTimer = {}
 local _pickOrder = {}
 local _heroRoles = {}
@@ -104,118 +104,133 @@ local _defaultDraft =
 local _pickCycle = 1;
 local _cmaiState = _cmaiStates[_CMAI_STATE_PRE];
 
-
--- returns the current lane assignments; CRITICAL FUNCTION! SEE 'hero_selection_example.lua' FOR USAGE!
-function _CMAI.GetLaneAssignments(lanes)
-	if GetGameMode() == GAMEMODE_CM then
-		return _CMAI.CMLaneAssignment()
-	else
-		return lanes()
+--
+local function UpdateNHeroSynergy(hero)
+	for k,v in pairs(UTILS.GetNHeroSynergy(hero)) do
+		if _heroSynergy[k] == nil then 
+			_heroSynergy[k] = v;
+		else
+			_heroSynergy[k] = _heroSynergy[k] + v;
+		end
 	end
 end
 
--- returns a random hero based on draft that has not been picked or banned to pick
-function _CMAI.GetNHeroPick()
+--
+local function DraftNHeroPick()
 	local hero = "";
-
+	table.sort(_heroSynergy)
+	for k,v in pairs(_heroSynergy) do
+		if not IsCMPickedHero(GetTeam(), k)
+		and not IsCMPickedHero(GetOpposingTeam(), k)
+		and not IsCMBannedHero(k) 
+		and UTILS.IsHeroNRole(k, _pickOrder[_pickCycle]) 
+		and v < 0 then
+			print('\n>>_heroSynergy[' .. k .. ']: ' .. v .. ' (pick)');
+			return k
+		end
+	end
 	while (
         hero == ""
         or IsCMPickedHero(GetTeam(), hero) 
         or IsCMPickedHero(GetOpposingTeam(), hero) 
         or IsCMBannedHero(hero)
 	) do
-        hero = ROLES[_pickOrder[_pickCycle]][RandomInt(1, #ROLES[_pickOrder[_pickCycle]])];
+        hero = UTILS.GetNRoleHeroes(_pickOrder[_pickCycle])[RandomInt(1, #UTILS.GetNRoleHeroes(_pickOrder[_pickCycle]))];
 	end
 	return hero
 end
 
--- returns a random hero that has not been picked or banned to ban
-function _CMAI.GetNHeroBan()
+--
+local function DraftNHeroBan()
 	local hero = "";
-
+	table.sort(_heroSynergy)
+	for k,v in pairs(_heroSynergy) do
+		if not IsCMPickedHero(GetTeam(), k)
+		and not IsCMPickedHero(GetOpposingTeam(), k)
+		and not IsCMBannedHero(k) 
+		and v < 0 then
+			print('\n>>_heroSynergy[' .. k .. ']: ' .. v .. ' (ban)');
+			return k
+		end
+	end
 	while (
         hero == ""
         or IsCMPickedHero(GetTeam(), hero) 
         or IsCMPickedHero(GetOpposingTeam(), hero) 
         or IsCMBannedHero(hero)
 	) do
-        hero = ROLES["hero"][RandomInt(1, #ROLES["hero"])];
+        hero = UTILS.GetNRoleHeroes("hero")[RandomInt(1, #UTILS.GetNRoleHeroes("hero"))];
 	end
 	return hero
 end
 
--- main function where all logic is executed; CRITICAL FUNCTION! SEE 'hero_selection_example.lua' FOR USAGE!
-function _CMAI.CMThink(origThink, minThink, maxThink, logOpponent, radiantDraft, direDraft)
-	if GetGameMode() == GAMEMODE_CM then
-		if GetGameState() ~= GAME_STATE_HERO_SELECTION then return end
-
-		if _cmaiState == _cmaiStates[_CMAI_STATE_PRE] then
-			_pickTimer[1] = minThink and 
-				(minThink >= 0 and Clamp(20 - minThink,-130,20) or Clamp(minThink,-130,0)) 
-					or 20;
-			_pickTimer[2] = maxThink and 
-				(maxThink >= 0 and Clamp(20 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
-					or Clamp(20,-130,_pickTimer[1]);
-			_pickTimer[3] = RandomInt(_pickTimer[2], _pickTimer[1]);
-			_pickTimer[4] = -130;
-			_cmaiState = _cmaiStates[_CMAI_STATE_DRAFT];
+-- updates the list of picked heroes when a human player selects a hero
+local function UpdateSelectedHeroes(hero)
+	for i = 1, #_pickedHeroes do
+		if _pickedHeroes[i] == hero then
+			table.remove(_pickedHeroes, i);
 		end
-		if GetHeroPickState() ~= _lastState then
-			_lastState = GetHeroPickState();
-			if GetHeroPickState() > HEROPICK_STATE_CM_BAN7 and _cmaiState == _cmaiStates[_CMAI_STATE_EARLY_PICK] then
-				_pickTimer[1] = minThink and 
-					(minThink >= 0 and Clamp(30 - minThink,-130,30) or Clamp(minThink,-130,0)) 
-						or 30;
-				_pickTimer[2] = maxThink and 
-					(maxThink >= 0 and Clamp(30 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
-						or Clamp(30,-130,_pickTimer[1]);
-				_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],160);
-				_cmaiState = _cmaiStates[_CMAI_STATE_PICK] 
+	end
+end
+
+-- make bot pick a hero
+local function PickHero()
+	if not IsPlayerBot(GetCMCaptain()) or not IsPlayerInHeroSelectionControl(GetCMCaptain()) then return end
+	local hero = DraftNHeroPick();
+
+	CMPickHero(hero);
+	UpdateNHeroSynergy(hero);
+	_pickCycle = _pickCycle + 1;
+end
+
+-- make bot ban a hero
+local function BanHero()
+	if not IsPlayerBot(GetCMCaptain()) or not IsPlayerInHeroSelectionControl(GetCMCaptain()) then return end
+	local hero = DraftNHeroBan();
+
+	CMBanHero(hero);
+	UpdateNHeroSynergy(hero);
+end
+
+-- make bots select heroes once human players have selected
+local function SelectHeroes()
+    local selecting = true;
+	if selecting and (not UTILS.IsHumanPlayerSelecting() or GetCMPhaseTimeRemaining() < 1) then
+		local bots = {}
+		local players = GetTeamPlayers(GetTeam());
+		local hero = "";
+		
+		for k,v in pairs(players) do
+			hero = GetSelectedHeroName(v);
+			if hero ~= nil and hero ~= "" then
+				UpdateSelectedHeroes(hero);
+			else
+				table.insert(bots, v);
 			end
 		end
-		if _cmaiState == _cmaiStates[_CMAI_STATE_DRAFT] then
-			_CMAI.ValidateDrafts(radiantDraft, direDraft, logOpponent) _cmaiState = _cmaiStates[_CMAI_STATE_CAPTAIN] end
-			
-		if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK and DotaTime() > -1 then
-			if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] then 		
-				UTILS.SetCaptain() _cmaiState = _cmaiStates[_CMAI_STATE_EARLY_PICK] end
+		for i = 1, #bots do
+			SelectHero(bots[i], _pickedHeroes[i]);
 		end
-		if GetHeroPickState() == HEROPICK_STATE_CM_PICK then
-			if _cmaiState == _cmaiStates[_CMAI_STATE_PICK] then
-				_CMAI.UpdatePickedHero() _cmaiState = _cmaiStates[_CMAI_STATE_POST] end
-			_CMAI.SelectHeroes();
-			
-		end
-		if _lastState ~= HEROPICK_STATE_CM_CAPTAINPICK and _lastState ~= HEROPICK_STATE_CM_PICK then
-			if (_cmaiState == _cmaiStates[_CMAI_STATE_EARLY_PICK] or _cmaiState == _cmaiStates[_CMAI_STATE_PICK]) then
-				local pickState = _firstPickStates[_lastState] == 0 and _lastPickStates[_lastState] or _firstPickStates[_lastState];
+		selecting = false;
+	end
+end
 
-				_timeRemaining = GetCMPhaseTimeRemaining();
-				if pickState ~= 0 then
-					if GetHeroPickState() >= HEROPICK_STATE_CM_BAN1 and GetHeroPickState() <= HEROPICK_STATE_CM_BAN14 and _timeRemaining <= _pickTimer[3] then
-						_CMAI.BanHero();
-						if _timeRemaining < 0 then
-							_pickTimer[4] = _pickTimer[4] - _timeRemaining;
-						end
-						_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
-					elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 and _timeRemaining <= _pickTimer[3] then
-						_CMAI.PickHero();
-						_CMAI.UpdatePickedHero();
-						if _timeRemaining < 0 then
-							_pickTimer[4] = _pickTimer[4] - _timeRemaining;
-						end
-						_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
-					end
-				end 
+-- updates the the list of picked heroes when a hero is picked
+local function UpdatePickedHero()
+	for k,v in pairs(UTILS.GetNRoleHeroes('hero')) do
+		if IsCMPickedHero(GetTeam(), v) then
+			for n,x in pairs(_pickedHeroes) do
+				if v == x then goto a end
 			end
+			table.insert(_pickedHeroes, v);
+			_heroRoles[v] = _pickOrder[#_pickedHeroes];
 		end
-	else
-		origThink();
+		::a::
 	end
 end
 
 -- ensures the draft input given, if any, is readable; otherwise, set draft data to default
-function _CMAI.ValidateDrafts(radiantDraft, direDraft, logOpponent)	
+local function ValidateDrafts(radiantDraft, direDraft, logOpponent)	
 	local draft
 	local roles = {}
 	local team = GetTeam() == TEAM_RADIANT and "RADIANT" or "DIRE";
@@ -239,71 +254,8 @@ function _CMAI.ValidateDrafts(radiantDraft, direDraft, logOpponent)
 		print('\n>>' .. team .. ' DRAFT:' .. '\n>> 1> ' .. _pickOrder[1] .. '\n>> 2> ' .. _pickOrder[2] .. '\n>> 3> ' .. _pickOrder[3] .. '\n>> 4> ' .. _pickOrder[4] .. '\n>> 5> ' .. _pickOrder[5]) end
 end
 
--- updates the the list of picked heroes when a hero is picked
-function _CMAI.UpdatePickedHero()
-	for k,v in pairs(ROLES["hero"]) do
-		if IsCMPickedHero(GetTeam(), v) then
-			for n,x in pairs(_pickedHeroes) do
-				if v == x then goto a end
-			end
-			table.insert(_pickedHeroes, v);
-			_heroRoles[v] = _pickOrder[#_pickedHeroes];
-		end
-		::a::
-	end
-end
-
--- updates the list of picked heroes when a human player selects a hero
-function _CMAI.UpdateSelectedHeroes(hero)
-	for i = 1, #_pickedHeroes do
-		if _pickedHeroes[i] == hero then
-			table.remove(_pickedHeroes, i);
-		end
-	end
-end
-
--- make bots select heroes once human players have selected
-function _CMAI.SelectHeroes()
-    local selecting = true;
-	if selecting and (not UTILS.IsHumanPlayerSelecting() or GetCMPhaseTimeRemaining() < 1) then
-		local bots = {}
-		local players = GetTeamPlayers(GetTeam());
-		local hero = "";
-		
-		for k,v in pairs(players) do
-			hero = GetSelectedHeroName(v);
-			if hero ~= nil and hero ~= "" then
-				_CMAI.UpdateSelectedHeroes(hero);
-			else
-				table.insert(bots, v);
-			end
-		end
-		for i = 1, #bots do
-			SelectHero(bots[i], _pickedHeroes[i]);
-		end
-		selecting = false;
-	end
-end
-
--- make bot pick a hero
-function _CMAI.PickHero()
-	if not IsPlayerBot(GetCMCaptain()) or not IsPlayerInHeroSelectionControl(GetCMCaptain()) then return end
-	local hero = _CMAI.GetNHeroPick();
-
-	CMPickHero(hero);
-	_pickCycle = _pickCycle + 1;
-end
-
--- make bot ban a hero
-function _CMAI.BanHero()
-	if not IsPlayerBot(GetCMCaptain()) or not IsPlayerInHeroSelectionControl(GetCMCaptain()) then return end
-	local hero = _CMAI.GetNHeroBan();
-
-	CMBanHero(hero);
-end
-
--- assign bots to lanes based on roles
-function _CMAI.CMLaneAssignment()
+-- returns the current lane assignments; CRITICAL FUNCTION! SEE 'hero_selection_example.lua' FOR USAGE!
+function _CMAI.UpdateLaneAssignments()
 	local players = GetTeamPlayers(GetTeam());
 
 	for i = 1, #players do
@@ -318,6 +270,77 @@ function _CMAI.CMLaneAssignment()
 		end
 	end
 	return _heroLanes
+end
+
+-- main function where all logic is executed; CRITICAL FUNCTION! SEE 'hero_selection_example.lua' FOR USAGE!
+function _CMAI.Think()
+	if GetGameState() ~= GAME_STATE_HERO_SELECTION then return end
+	local minThink = UTILS.GetNConfig('MINIMUM_THINK_TIME');
+	local maxThink = UTILS.GetNConfig('MAXIMUM_THINK_TIME');
+	local logOpponent = UTILS.GetNConfig('LOG_OPPONENT_DRAFT');
+	local radiantDraft = UTILS.GetNConfig('RADIANT_DRAFT');
+	local direDraft = UTILS.GetNConfig('DIRE_DRAFT');
+
+	if _cmaiState == _cmaiStates[_CMAI_STATE_PRE] then
+		_pickTimer[1] = minThink and 
+			(minThink >= 0 and Clamp(20 - minThink,-130,20) or Clamp(minThink,-130,0)) 
+				or 20;
+		_pickTimer[2] = maxThink and 
+			(maxThink >= 0 and Clamp(20 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
+				or Clamp(20,-130,_pickTimer[1]);
+		_pickTimer[3] = RandomInt(_pickTimer[2], _pickTimer[1]);
+		_pickTimer[4] = -130;
+		_cmaiState = _cmaiStates[_CMAI_STATE_DRAFT];
+	end
+	if GetHeroPickState() ~= _lastState then
+		_lastState = GetHeroPickState();
+		if GetHeroPickState() > HEROPICK_STATE_CM_BAN7 and _cmaiState == _cmaiStates[_CMAI_STATE_EARLY_PICK] then
+			_pickTimer[1] = minThink and 
+				(minThink >= 0 and Clamp(30 - minThink,-130,30) or Clamp(minThink,-130,0)) 
+					or 30;
+			_pickTimer[2] = maxThink and 
+				(maxThink >= 0 and Clamp(30 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
+					or Clamp(30,-130,_pickTimer[1]);
+			_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],160);
+			_cmaiState = _cmaiStates[_CMAI_STATE_PICK] 
+		end
+	end
+	if _cmaiState == _cmaiStates[_CMAI_STATE_DRAFT] then
+		ValidateDrafts(radiantDraft, direDraft, logOpponent) _cmaiState = _cmaiStates[_CMAI_STATE_CAPTAIN] end
+		
+	if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK and DotaTime() > -1 then
+		if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] then 		
+			UTILS.SetCaptain() _cmaiState = _cmaiStates[_CMAI_STATE_EARLY_PICK] end
+	end
+	if GetHeroPickState() == HEROPICK_STATE_CM_PICK then
+		if _cmaiState == _cmaiStates[_CMAI_STATE_PICK] then
+			UpdatePickedHero() _cmaiState = _cmaiStates[_CMAI_STATE_POST] end
+		SelectHeroes();
+		
+	end
+	if _lastState ~= HEROPICK_STATE_CM_CAPTAINPICK and _lastState ~= HEROPICK_STATE_CM_PICK then
+		if (_cmaiState == _cmaiStates[_CMAI_STATE_EARLY_PICK] or _cmaiState == _cmaiStates[_CMAI_STATE_PICK]) then
+			local pickState = _firstPickStates[_lastState] == 0 and _lastPickStates[_lastState] or _firstPickStates[_lastState];
+
+			_timeRemaining = GetCMPhaseTimeRemaining();
+			if pickState ~= 0 then
+				if GetHeroPickState() >= HEROPICK_STATE_CM_BAN1 and GetHeroPickState() <= HEROPICK_STATE_CM_BAN14 and _timeRemaining <= _pickTimer[3] then
+					BanHero();
+					if _timeRemaining < 0 then
+						_pickTimer[4] = _pickTimer[4] - _timeRemaining;
+					end
+					_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
+				elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 and _timeRemaining <= _pickTimer[3] then
+					PickHero();
+					UpdatePickedHero();
+					if _timeRemaining < 0 then
+						_pickTimer[4] = _pickTimer[4] - _timeRemaining;
+					end
+					_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
+				end
+			end 
+		end
+	end
 end
 --
 --
