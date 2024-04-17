@@ -14,7 +14,6 @@ local UTILS = require(GetScriptDirectory() .. "\\cmai\\utils");
 local _pickedHeroes = {}
 local _oppPicked = {}
 local _bannedHeroes = {}
-local _oppBanned = {}
 local _heroSynergy = {}
 local _pickTimer = {}
 local _pickOrder = {}
@@ -221,7 +220,7 @@ local function UpdateHeroes()
 	for k,v in pairs(UTILS.GetNRoleHeroes('hero')) do
 		if IsCMPickedHero(GetTeam(), v) then
 			for n,x in pairs(_pickedHeroes) do
-				if v == x then UpdateNHeroSynergy(v) goto a end
+				if v == x then goto a end
 			end
 			table.insert(_pickedHeroes, v);
 			UpdateNHeroSynergy(v);
@@ -230,28 +229,20 @@ local function UpdateHeroes()
 		::a::
 		if IsCMPickedHero(GetOpposingTeam(), v) then
 			for n,x in pairs(_oppPicked) do
-				if v == x then UpdateNHeroSynergy(v) goto b end
+				if v == x then goto b end
 			end
 			table.insert(_oppPicked, v);
 			UpdateNHeroSynergy(v);
 		end
 		::b::
-		if IsCMBannedHero(GetTeam(), v) then
+		if IsCMBannedHero(v) then
 			for n,x in pairs(_bannedHeroes) do
-				if v == x then UpdateNHeroSynergy(v) goto c end
+				if v == x then goto c end
 			end
 			table.insert(_bannedHeroes, v);
 			UpdateNHeroSynergy(v);
 		end
 		::c::
-		if IsCMBannedHero(GetOpposingTeam(), v) then
-			for n,x in pairs(_oppBanned) do
-				if v == x then UpdateNHeroSynergy(v) goto d end
-			end
-			table.insert(_oppBanned, v);
-			UpdateNHeroSynergy(v);
-		end
-		::d::
 	end
 end
 
