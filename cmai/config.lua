@@ -26,7 +26,8 @@ _CONFIG["LOG_OPPONENT_DRAFT"] = false
 _CONFIG["RADIANT_DRAFT"] = {}
 
 -- the order in which what roles will be picked for the dire team
--- leave empty and the draft will be random
+-- e.g. {'mid', 'off', 'safe', 'soft', 'hard'}
+-- default: {} (random)
 _CONFIG["DIRE_DRAFT"] = {}
 --
 --
