@@ -12,6 +12,9 @@ local UTILS = require(GetScriptDirectory() .. "\\cmai\\utils");
 
 -- init tables
 local _pickedHeroes = {}
+local _oppPicked = {}
+local _bannedHeroes = {}
+local _oppBanned = {}
 local _heroSynergy = {}
 local _pickTimer = {}
 local _pickOrder = {}
@@ -179,7 +182,6 @@ local function PickHero()
 	local hero = DraftNHeroPick();
 
 	CMPickHero(hero);
-	UpdateNHeroSynergy(hero);
 	_pickCycle = _pickCycle + 1;
 end
 
@@ -189,7 +191,6 @@ local function BanHero()
 	local hero = DraftNHeroBan();
 
 	CMBanHero(hero);
-	UpdateNHeroSynergy(hero);
 end
 
 -- make bots select heroes once human players have selected
@@ -216,16 +217,41 @@ local function SelectHeroes()
 end
 
 -- updates the the list of picked heroes when a hero is picked
-local function UpdatePickedHero()
+local function UpdateHeroes()
 	for k,v in pairs(UTILS.GetNRoleHeroes('hero')) do
 		if IsCMPickedHero(GetTeam(), v) then
 			for n,x in pairs(_pickedHeroes) do
-				if v == x then goto a end
+				if v == x then UpdateNHeroSynergy(v) goto a end
 			end
 			table.insert(_pickedHeroes, v);
+			UpdateNHeroSynergy(v);
 			_heroRoles[v] = _pickOrder[#_pickedHeroes];
 		end
 		::a::
+		if IsCMPickedHero(GetOpposingTeam(), v) then
+			for n,x in pairs(_oppPicked) do
+				if v == x then UpdateNHeroSynergy(v) goto b end
+			end
+			table.insert(_oppPicked, v);
+			UpdateNHeroSynergy(v);
+		end
+		::b::
+		if IsCMBannedHero(GetTeam(), v) then
+			for n,x in pairs(_bannedHeroes) do
+				if v == x then UpdateNHeroSynergy(v) goto c end
+			end
+			table.insert(_bannedHeroes, v);
+			UpdateNHeroSynergy(v);
+		end
+		::c::
+		if IsCMBannedHero(GetOpposingTeam(), v) then
+			for n,x in pairs(_oppBanned) do
+				if v == x then UpdateNHeroSynergy(v) goto d end
+			end
+			table.insert(_oppBanned, v);
+			UpdateNHeroSynergy(v);
+		end
+		::d::
 	end
 end
 
@@ -234,7 +260,9 @@ local function ValidateDrafts(radiantDraft, direDraft, logOpponent)
 	local draft
 	local roles = {}
 	local team = GetTeam() == TEAM_RADIANT and "RADIANT" or "DIRE";
-	draft = ((GetTeam() == TEAM_RADIANT and radiantDraft) or (GetTeam() == TEAM_DIRE and direDraft)) or UTILS.GetShuffledTable(_defaultDraft);
+	draft = (((GetTeam() == TEAM_RADIANT and (radiantDraft ~= nil and #radiantDraft == 5)) and radiantDraft) or 
+			((GetTeam() == TEAM_DIRE and (direDraft ~= nil and #direDraft == 5)) and direDraft))
+				or UTILS.GetShuffledTable(_defaultDraft);
 	for k,v in pairs(draft) do
 		if (v ~= 'safe' and v ~= 'mid' and v ~= 'off' and v ~= 'soft' and v ~= 'hard') or #draft ~= 5 then goto a end
 		for n,x in pairs(roles) do if x == v then goto a end end
@@ -314,7 +342,7 @@ function _CMAI.Think()
 	end
 	if GetHeroPickState() == HEROPICK_STATE_CM_PICK then
 		if _cmaiState == _cmaiStates[_CMAI_STATE_PICK] then
-			UpdatePickedHero() _cmaiState = _cmaiStates[_CMAI_STATE_POST] end
+			UpdateHeroes() _cmaiState = _cmaiStates[_CMAI_STATE_POST] end
 		SelectHeroes();
 		
 	end
@@ -332,7 +360,7 @@ function _CMAI.Think()
 					_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],30);
 				elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 and _timeRemaining <= _pickTimer[3] then
 					PickHero();
-					UpdatePickedHero();
+					UpdateHeroes();
 					if _timeRemaining < 0 then
 						_pickTimer[4] = _pickTimer[4] - _timeRemaining;
 					end
