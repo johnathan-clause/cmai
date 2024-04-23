@@ -106,7 +106,7 @@ local _defaultDraft =
 local _pickCycle = 1;
 local _cmaiState = _cmaiStates[_CMAI_STATE_PRE];
 
---
+-- adds the hero synergies of the given hero to the hero synergy table
 local function UpdateNHeroSynergy(hero)
 	for k,v in pairs(UTILS.GetNHeroSynergy(hero)) do
 		if _heroSynergy[k] == nil then 
@@ -117,7 +117,7 @@ local function UpdateNHeroSynergy(hero)
 	end
 end
 
---
+-- returns a hero with the lowest synergy score, or a random hero, to pick for the current role
 local function DraftNHeroPick()
 	local hero = "";
 	table.sort(_heroSynergy)
@@ -127,7 +127,6 @@ local function DraftNHeroPick()
 		and not IsCMBannedHero(k) 
 		and UTILS.IsHeroNRole(k, _pickOrder[_pickCycle]) 
 		and v < 0 then
-			print('\n>>_heroSynergy[' .. k .. ']: ' .. v .. ' (pick)');
 			return k
 		end
 	end
@@ -142,7 +141,7 @@ local function DraftNHeroPick()
 	return hero
 end
 
---
+-- returns a hero with the lowest synergy score, or a random hero, to be banned
 local function DraftNHeroBan()
 	local hero = "";
 	table.sort(_heroSynergy)
@@ -151,7 +150,6 @@ local function DraftNHeroBan()
 		and not IsCMPickedHero(GetOpposingTeam(), k)
 		and not IsCMBannedHero(k) 
 		and v < 0 then
-			print('\n>>_heroSynergy[' .. k .. ']: ' .. v .. ' (ban)');
 			return k
 		end
 	end
