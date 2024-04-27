@@ -10,6 +10,13 @@ local _CMAI = {}
 -- requires
 local UTILS = require(GetScriptDirectory() .. "\\cmai\\utils");
 
+-- configuration
+local _minThink = UTILS.GetNConfig('MINIMUM_THINK_TIME');
+local _maxThink = UTILS.GetNConfig('MAXIMUM_THINK_TIME');
+local _logOpponent = UTILS.GetNConfig('LOG_OPPONENT_DRAFT');
+local _radiantDraft = UTILS.GetNConfig('RADIANT_DRAFT');
+local _direDraft = UTILS.GetNConfig('DIRE_DRAFT');
+
 -- init tables
 local _pickedHeroes = {}
 local _oppPicked = {}
@@ -245,12 +252,12 @@ local function UpdateHeroes()
 end
 
 -- ensures the draft input given, if any, is readable; otherwise, set draft data to default
-local function ValidateDrafts(radiantDraft, direDraft, logOpponent)	
+local function ValidateDrafts(_radiantDraft, _direDraft, _logOpponent)	
 	local draft
 	local roles = {}
 	local team = GetTeam() == TEAM_RADIANT and "RADIANT" or "DIRE";
-	draft = (((GetTeam() == TEAM_RADIANT and (radiantDraft ~= nil and #radiantDraft == 5)) and radiantDraft) or 
-			((GetTeam() == TEAM_DIRE and (direDraft ~= nil and #direDraft == 5)) and direDraft))
+	draft = (((GetTeam() == TEAM_RADIANT and (_radiantDraft ~= nil and #_radiantDraft == 5)) and _radiantDraft) or 
+			((GetTeam() == TEAM_DIRE and (_direDraft ~= nil and #_direDraft == 5)) and _direDraft))
 				or UTILS.GetShuffledTable(_defaultDraft);
 	for k,v in pairs(draft) do
 		if (v ~= 'safe' and v ~= 'mid' and v ~= 'off' and v ~= 'soft' and v ~= 'hard') or #draft ~= 5 then goto a end
@@ -267,7 +274,7 @@ local function ValidateDrafts(radiantDraft, direDraft, logOpponent)
 	::b::
 	if UTILS.HasHumanPlayer() 
 		and ((GetTeam() == TEAM_RADIANT and GetOpposingTeam() == TEAM_DIRE) or (GetOpposingTeam() == TEAM_RADIANT and GetTeam() == TEAM_DIRE))  
-			or (logOpponent and not UTILS.HasHumanPlayer()) then 
+			or (_logOpponent and not UTILS.HasHumanPlayer()) then 
 		print('\n>>' .. team .. ' DRAFT:' .. '\n>> 1> ' .. _pickOrder[1] .. '\n>> 2> ' .. _pickOrder[2] .. '\n>> 3> ' .. _pickOrder[3] .. '\n>> 4> ' .. _pickOrder[4] .. '\n>> 5> ' .. _pickOrder[5]) end
 end
 
@@ -292,18 +299,12 @@ end
 -- main function where all logic is executed; CRITICAL FUNCTION! SEE 'hero_selection_example.lua' FOR USAGE!
 function _CMAI.Think()
 	if GetGameState() ~= GAME_STATE_HERO_SELECTION then return end
-	local minThink = UTILS.GetNConfig('MINIMUM_THINK_TIME');
-	local maxThink = UTILS.GetNConfig('MAXIMUM_THINK_TIME');
-	local logOpponent = UTILS.GetNConfig('LOG_OPPONENT_DRAFT');
-	local radiantDraft = UTILS.GetNConfig('RADIANT_DRAFT');
-	local direDraft = UTILS.GetNConfig('DIRE_DRAFT');
-
 	if _cmaiState == _cmaiStates[_CMAI_STATE_PRE] then
-		_pickTimer[1] = minThink and 
-			(minThink >= 0 and Clamp(20 - minThink,-130,20) or Clamp(minThink,-130,0)) 
+		_pickTimer[1] = _minThink and 
+			(_minThink >= 0 and Clamp(20 - _minThink,-130,20) or Clamp(_minThink,-130,0)) 
 				or 20;
-		_pickTimer[2] = maxThink and 
-			(maxThink >= 0 and Clamp(20 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
+		_pickTimer[2] = _maxThink and 
+			(_maxThink >= 0 and Clamp(20 - _maxThink,-130,_pickTimer[1]) or Clamp(_maxThink,-130,_pickTimer[1])) 
 				or Clamp(20,-130,_pickTimer[1]);
 		_pickTimer[3] = RandomInt(_pickTimer[2], _pickTimer[1]);
 		_pickTimer[4] = -130;
@@ -312,18 +313,18 @@ function _CMAI.Think()
 	if GetHeroPickState() ~= _lastState then
 		_lastState = GetHeroPickState();
 		if GetHeroPickState() > HEROPICK_STATE_CM_BAN7 and _cmaiState == _cmaiStates[_CMAI_STATE_EARLY_PICK] then
-			_pickTimer[1] = minThink and 
-				(minThink >= 0 and Clamp(30 - minThink,-130,30) or Clamp(minThink,-130,0)) 
+			_pickTimer[1] = _minThink and 
+				(_minThink >= 0 and Clamp(30 - _minThink,-130,30) or Clamp(_minThink,-130,0)) 
 					or 30;
-			_pickTimer[2] = maxThink and 
-				(maxThink >= 0 and Clamp(30 - maxThink,-130,_pickTimer[1]) or Clamp(maxThink,-130,_pickTimer[1])) 
+			_pickTimer[2] = _maxThink and 
+				(_maxThink >= 0 and Clamp(30 - _maxThink,-130,_pickTimer[1]) or Clamp(_maxThink,-130,_pickTimer[1])) 
 					or Clamp(30,-130,_pickTimer[1]);
 			_pickTimer[3] = Clamp(RandomInt(_pickTimer[2], _pickTimer[1]),_pickTimer[4],160);
 			_cmaiState = _cmaiStates[_CMAI_STATE_PICK] 
 		end
 	end
 	if _cmaiState == _cmaiStates[_CMAI_STATE_DRAFT] then
-		ValidateDrafts(radiantDraft, direDraft, logOpponent) _cmaiState = _cmaiStates[_CMAI_STATE_CAPTAIN] end
+		ValidateDrafts(_radiantDraft, _direDraft, _logOpponent) _cmaiState = _cmaiStates[_CMAI_STATE_CAPTAIN] end
 		
 	if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK and DotaTime() > -1 then
 		if _cmaiState == _cmaiStates[_CMAI_STATE_CAPTAIN] then 		
