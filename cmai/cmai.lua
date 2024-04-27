@@ -24,7 +24,7 @@ local _bannedHeroes = {}
 local _heroSynergy = {}
 local _pickTimer = {}
 local _pickOrder = {}
-local _heroRoles = {}
+_CMAI._heroRoles = {}
 local _heroLanes = {}
 
 -- init vars
@@ -229,7 +229,7 @@ local function UpdateHeroes()
 			end
 			table.insert(_pickedHeroes, v);
 			UpdateNHeroSynergy(v);
-			_heroRoles[v] = _pickOrder[#_pickedHeroes];
+			_CMAI._heroRoles[v] = _pickOrder[#_pickedHeroes];
 		end
 		::a::
 		if IsCMPickedHero(GetOpposingTeam(), v) then
@@ -288,9 +288,9 @@ function _CMAI.UpdateLaneAssignments()
 		if member ~= nil and member:IsHero() then
 			local unit = member:GetUnitName();
 
-			if _heroRoles[unit] == "safe" or _heroRoles[unit] == "hard" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_BOT or LANE_TOP end
-			if _heroRoles[unit] == "off" or _heroRoles[unit] == "soft" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_TOP or LANE_BOT end
-			if _heroRoles[unit] == "mid" then _heroLanes[i] = LANE_MID end
+			if _CMAI._heroRoles[unit] == "safe" or _CMAI._heroRoles[unit] == "hard" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_BOT or LANE_TOP end
+			if _CMAI._heroRoles[unit] == "off" or _CMAI._heroRoles[unit] == "soft" then _heroLanes[i] = GetTeam() == TEAM_RADIANT and LANE_TOP or LANE_BOT end
+			if _CMAI._heroRoles[unit] == "mid" then _heroLanes[i] = LANE_MID end
 		end
 	end
 	return _heroLanes
