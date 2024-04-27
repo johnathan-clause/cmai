@@ -111,6 +111,12 @@ function _UTILS.GetNConfig(config)
 	end
 	return nil
 end
+
+--	returns the current hero roles table
+function _UTILS.GetHeroRoles()
+	local CMAI = require(GetScriptDirectory() .. '\\cmai\\cmai')
+	return CMAI._heroRoles
+end
 --
 --
 return _UTILS
