@@ -1,7 +1,7 @@
-local JMZ = require( GetScriptDirectory() .. '\\FunLib\\_jmz_func' )
+local JMZ = require(GetScriptDirectory() .. '\\FunLib\\_jmz_func')
 if GetGameMode() == GAMEMODE_CM then
-    function _JMZ.GetPosition( bot )
-        local UTILS = require( GetScriptDirectory() .. '\\cmai\\utils' )
+    function JMZ.GetPosition(bot)
+        local UTILS = require(GetScriptDirectory() .. '\\cmai\\utils')
         local pos = 
         {
             ['safe'] = 1,
