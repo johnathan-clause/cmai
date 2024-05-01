@@ -1,7 +1,7 @@
-local ROLE = require( GetScriptDirectory() .. '\\_RoleUtility' )
+local ROLE = require(GetScriptDirectory() .. '\\_RoleUtility')
 if GetGameMode() == GAMEMODE_CM then
-    function _ROLE.GetCurrentSuitableRole(bot, hero)
-        local UTIL = require( GetScriptDirectory() .. '\\cmai\\utils' )
+    function ROLE.GetCurrentSuitableRole(bot, hero)
+        local UTIL = require(GetScriptDirectory() .. '\\cmai\\utils')
         local role = 
         {
             ['safe']    = 'carry',
